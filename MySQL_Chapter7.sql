@@ -1,5 +1,5 @@
 /********************************************************
-Date: 2026-11-12
+Date: 2026-11-17
 Name: Suna Aregay
 Chapter 7 Assignment
 Github URL: https://github.com/suna2km/MySQL_Chapter7
@@ -99,3 +99,46 @@ FROM customer c
 		ON c.customer_id = p.customer_id
 WHERE payment_id IS NULL
 ORDER BY customer_id;
+/*************************************************************
+Query 6: SELECT subquery returning a single value
+6.A Write a query that uses a correlated subquery in the SELECT clause displaying each customer's MAX payment date.
+Order by customer id DESC.
+6.B Rewrite the query to use a LEFT JOIN instead of a subquery
+**************************************************************/
+-- 6.A
+SELECT c.customer_id, first_name, last_name,
+    (SELECT MAX(p.payment_date) FROM payment p
+     WHERE p.customer_id = c.customer_id) AS latest_payment
+FROM customer c
+ORDER BY c.customer_id DESC;
+
+SELECT c.customer_id, first_name, last_name, 
+	MAX(p.payment_date) AS latest_payment
+FROM customer c 
+    LEFT JOIN payment p ON p.customer_id = c.customer_id
+GROUP BY c.customer_id
+ORDER BY c.customer_id DESC;
+/*************************************************************
+Query 7: FROM subquery returning a inline view (temporary table)
+7.A Write a query that display the top customer based on total amount paid. To do this, group the payment table by
+customer, sort descending by total amount paid and limit the query to only display the first record.
+7.B Write a query that displays all the payments for the top customer by joining 7.A query to the payment table sorting
+by payment date.
+**************************************************************/
+-- 7.A
+SELECT customer_id, SUM(amount) AS total_amount_paid
+FROM payment
+GROUP BY customer_id
+ORDER BY total_amount_paid DESC
+LIMIT 1;
+-- 7.B
+SELECT p.customer_id, p.amount, p.payment_date
+FROM payment p
+JOIN (
+	SELECT customer_id, SUM(amount) AS total_amount_paid
+	FROM payment
+	GROUP BY customer_id
+	ORDER BY total_amount_paid DESC
+	LIMIT 1) t
+    ON t.customer_id = p.customer_id
+ORDER BY p.payment_date;
